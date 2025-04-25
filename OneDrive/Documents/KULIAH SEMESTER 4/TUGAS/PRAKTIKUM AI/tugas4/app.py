@@ -1,25 +1,23 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, send_file, request
 import pandas as pd
-
-app = Flask(__name__)
-
-from flask import send_file, request, make_response
 import io
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import pandas as pd
 import os
+
+app = Flask(__name__)
 
 @app.route("/", methods=["GET"])
 def index():
     df_prediksi = pd.read_csv('hasil_prediksi_hiv.csv')
     kabupaten_list = sorted(df_prediksi['nama_kabupaten_kota'].unique())
     selected_kabupaten = request.args.get('kabupaten')
-    # Grafik URL akan mengandung parameter filter
     grafik_url = url_for('grafik_dynamic', kabupaten=selected_kabupaten if selected_kabupaten else 'ALL')
+    
     if selected_kabupaten and selected_kabupaten != 'ALL':
         df_prediksi = df_prediksi[df_prediksi['nama_kabupaten_kota'] == selected_kabupaten]
+
     tabel_prediksi_data = df_prediksi.to_dict(orient='records')
     return render_template("index.html",
                            tabel_prediksi_data=tabel_prediksi_data,
@@ -33,15 +31,14 @@ def grafik_dynamic():
     df_prediksi = pd.read_csv('hasil_prediksi_hiv.csv')
     df_aktual = pd.read_csv('dinkes-od_18510_jumlah_kasus_hiv_berdasarkan_kabupatenkota_v2_data.csv')
     plt.figure(figsize=(10,5))
+
     if kabupaten and kabupaten != 'ALL':
-        # Plot hanya kabupaten/kota terpilih dengan warna soft
         data_aktual = df_aktual[df_aktual['nama_kabupaten_kota'] == kabupaten]
         data_pred = df_prediksi[df_prediksi['nama_kabupaten_kota'] == kabupaten]
         plt.plot(data_aktual['tahun'], data_aktual['jumlah_kasus'], marker='o', label=f'Aktual {kabupaten}', color='#40E0D0', linewidth=3)
         plt.plot(data_pred['tahun'], data_pred['jumlah_kasus'], marker='o', label=f'Prediksi {kabupaten}', color='#FFD1DC', linewidth=3, linestyle='dashed')
         plt.title(f'Grafik Prediksi & Data Aktual\n{kabupaten}')
     else:
-        # Plot semua kabupaten/kota dengan colormap tab20
         import matplotlib.cm as cm
         import numpy as np
         kota_list = list(df_aktual['nama_kabupaten_kota'].unique())
@@ -53,9 +50,9 @@ def grafik_dynamic():
             data_pred = df_prediksi[df_prediksi['nama_kabupaten_kota'] == nama]
             plt.plot(data_pred['tahun'], data_pred['jumlah_kasus'], marker='o', alpha=0.6, linestyle='dashed', color=colors(idx))
         plt.title('Prediksi Jumlah Kasus HIV per Kabupaten/Kota (2018-2025)')
+
     plt.xlabel('Tahun')
     plt.ylabel('Jumlah Kasus')
-    # Tidak ada legend
     plt.grid(True, linestyle='--', alpha=0.5)
     plt.tight_layout()
     img = io.BytesIO()
@@ -74,6 +71,7 @@ def download_grafik():
     df_prediksi = pd.read_csv('hasil_prediksi_hiv.csv')
     df_aktual = pd.read_csv('dinkes-od_18510_jumlah_kasus_hiv_berdasarkan_kabupatenkota_v2_data.csv')
     plt.figure(figsize=(10,5))
+
     if kabupaten and kabupaten != 'ALL':
         data_aktual = df_aktual[df_aktual['nama_kabupaten_kota'] == kabupaten]
         data_pred = df_prediksi[df_prediksi['nama_kabupaten_kota'] == kabupaten]
@@ -88,6 +86,7 @@ def download_grafik():
             data_pred = df_prediksi[df_prediksi['nama_kabupaten_kota'] == nama]
             plt.plot(data_pred['tahun'], data_pred['jumlah_kasus'], marker='o', alpha=0.3, linestyle='dashed')
         plt.title('Prediksi Jumlah Kasus HIV per Kabupaten/Kota (2018-2025)')
+
     plt.xlabel('Tahun')
     plt.ylabel('Jumlah Kasus')
     plt.legend(loc='best', fontsize=8)
@@ -100,4 +99,5 @@ def download_grafik():
     return send_file(img, mimetype='image/png', as_attachment=True, download_name='grafik_hiv.png')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
