@@ -1,0 +1,12 @@
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+
+# Ignore virtual environment
+venv/
+
+# Ignore VSCode temporary file
+tempCodeRunnerFile.py
+
+# Ignore environment variable file (kalau pakai)
+.env

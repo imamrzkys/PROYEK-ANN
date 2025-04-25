@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediksi Kasus HIV - ANN</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #FFD1DC;
+        }
+        .navbar {
+            background-color: #FFC5C5;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Prediksi Kasus HIV - ANN</span>
+        </div>
+    </nav>
+    <div class="container">
+        {% extends "base.html" %}
+        {% block content %}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="glass-card mb-4 position-relative">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 gap-3">
+    <form method="get" class="d-flex align-items-center gap-2" id="filterForm">
+      <label for="kabupaten" class="fw-semibold me-2 mb-0"><i class="fa fa-filter"></i> Filter Kabupaten/Kota:</label>
+      <select name="kabupaten" id="kabupaten" class="form-select form-select-sm" style="width:auto;">
+        <option value="ALL" {% if not selected_kabupaten or selected_kabupaten=='ALL' %}selected{% endif %}>Semua</option>
+        {% for kab in kabupaten_list %}
+        <option value="{{ kab }}" {% if selected_kabupaten==kab %}selected{% endif %}>{{ kab }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    <div class="d-flex gap-2">
+      <a href="/download/csv{% if selected_kabupaten %}?kabupaten={{ selected_kabupaten }}{% endif %}" class="btn btn-outline-primary btn-sm"><i class="fa fa-download me-1"></i> Download CSV</a>
+      <a href="/download/grafik{% if selected_kabupaten %}?kabupaten={{ selected_kabupaten }}{% endif %}" class="btn btn-outline-danger btn-sm"><i class="fa fa-image me-1"></i> Download Grafik</a>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle mb-0" id="prediksi-table" style="border-radius:1rem;overflow:hidden;">
+      <thead class="table-primary text-center sticky-top" style="font-size:1.1rem;">
+        <tr>
+          <th>Nama Kabupaten/Kota</th>
+          <th>Tahun</th>
+          <th>Jumlah Kasus</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set warna = ['table-primary','table-danger','table-success','table-warning','table-info','table-secondary'] %}
+        {% for row in tabel_prediksi_data %}
+        <tr class="{{ warna[loop.index0 % warna|length] }} table-row-effect">
+          <td>{{ row['nama_kabupaten_kota'] }}</td>
+          <td>{{ row['tahun'] }}</td>
+          <td>{{ row['jumlah_kasus'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div id="loading-overlay" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.7);z-index:10;justify-content:center;align-items:center;">
+    <div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div>
+  </div>
+</div>
+<script>
+const form = document.getElementById('filterForm');
+const kabupaten = document.getElementById('kabupaten');
+const overlay = document.getElementById('loading-overlay');
+kabupaten.addEventListener('change', function() {
+  overlay.style.display = 'flex';
+  form.submit();
+});
+</script>
+
+    <div class="card shadow-sm p-3 mb-5 bg-white rounded border border-danger">
+      <h3 class="mb-3 text-center fw-bold" style="color:#0d6efd;">Grafik Prediksi & Data Aktual</h3>
+      <img src="{{ grafik_url }}" alt="Grafik Prediksi HIV" class="img-fluid rounded mx-auto d-block" style="background: #fff;">
+    </div>
+    <footer class="text-center mt-4 mb-2 text-white-50 small">
+      &copy; {{ 2025 }} Prediksi Kasus HIV Jawa Barat &mdash; <i class="fa fa-heartbeat text-danger"></i> by Imam Rizki Saputra
+    </footer>
+  </div>
+</div>
+<style>
+#prediksi-table th, #prediksi-table td {vertical-align: middle;}
+#prediksi-table tbody tr.table-row-effect:hover {
+  filter: brightness(0.97) drop-shadow(0 2px 8px #0d6efd22);
+  transition: filter 0.2s;
+}
+#prediksi-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #e3f0fc;
+}
+@media (max-width: 767px) {
+  h2 {font-size:1.2rem;}
+  #prediksi-table thead th {font-size:0.95rem;}
+}
+</style>
+        {% endblock %}
+    </div>
+</body>
+</html>
